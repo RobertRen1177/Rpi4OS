@@ -1,7 +1,6 @@
 #include <stdio.h>
+#include "IO/include/io.h"
 void main() {
-    while (1){
-        printf("Hello, World!\n");
-        continue; 
-    }
+    uart_init();
+    uart_write_buffer("hello world");
 }
