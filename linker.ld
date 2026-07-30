@@ -1,7 +1,7 @@
 SECTIONS{
     . = 0x80000 /* the kernel loads code into this address */
     .text : {KEEP(*(.text_boot)) *(.text .text.* .gnu.linkonce.t*)}
-    .rodata : {*(.ro_data .rodata.* .gnu.linkonce.r*)}
+    .rodata : {*(.rodata .rodata.* .gnu.linkonce.r*)}
     PROVIDE(_data = .) /*if _data does not exist set the value equal to the current address*/
     .data : { *(.data .data.* .gnu.linkonce.d*) }
     .bss (NOLOAD) : {

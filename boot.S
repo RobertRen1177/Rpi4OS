@@ -1,11 +1,11 @@
-.section "text.boot"
+.section ".text.boot"
 
 .global _start
 
 _start:
     mrs x1, mpidr_el1
     and x1, x1, #3
-    cbz x1, 0, 2f
+    cbz x1, 2f
 
 1: 
     wfe
