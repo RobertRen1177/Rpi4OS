@@ -10,24 +10,33 @@ static struct page* all_pages_array;
 // head of the singly-linked list of free pages
 static struct page* free_list_head;
 
+// physical start of the contiguous region reserved for the kernel heap
+static uintptr_t heap_start_addr;
+
 void page_init(void) {
     // total memory divided by each page's size is how many pages we have
     uint32_t numpages = MEMORY_SIZE / PAGE_SIZE;
 
-    // Place the metadata array right after the kernel image. Round up to 16 bytes:
-    // while the MMU is disabled, unaligned accesses fault, so the array must be aligned.
-    uintptr_t array_start = ((uintptr_t)&_end + 15) & ~(uintptr_t)15;
-    all_pages_array = (struct page*)array_start;
+    // The metadata array starts right at _end (the linker script keeps _end 16-byte
+    // aligned, so this address is safe to access with the MMU off).
+    all_pages_array = (struct page*)&_end;
 
-    // Everything from address 0 up through the END OF THE METADATA ARRAY is kernel-owned:
+    // Pages consumed by firmware + kernel image + this metadata array. Round UP so the
+    // page that holds the array's tail is reserved, not handed out.
     //   0x0     -> 0x80000 : firmware / boot region (and the stack grows down into here)
     //   0x80000 -> _end     : the kernel image
     //   _end    -> array_end: this metadata array itself
-    // None of those pages may ever be handed out.
-    uintptr_t array_end = array_start + (uintptr_t)numpages * sizeof(struct page);
-    uint32_t reserved_pages = (uint32_t)((array_end + PAGE_SIZE - 1) / PAGE_SIZE);
+    uintptr_t array_end   = (uintptr_t)&_end + (uintptr_t)numpages * sizeof(struct page);
+    uint32_t  array_pages = (uint32_t)((array_end + PAGE_SIZE - 1) / PAGE_SIZE);
+
+    // The heap is a fixed contiguous region immediately after the array.
+    heap_start_addr        = (uintptr_t)array_pages * PAGE_SIZE;
+    uint32_t heap_pages    = HEAP_SIZE / PAGE_SIZE;
+
+    // Reserve firmware + kernel + array + heap; none of these ever go on the free list.
+    uint32_t reserved_pages = array_pages + heap_pages;
     if (reserved_pages > numpages) {
-        reserved_pages = numpages;   // pathological: not enough RAM for the array itself
+        reserved_pages = numpages;   // safety clamp: RAM too small (never happens in practice)
     }
 
     free_list_head = NULL;
@@ -62,10 +71,7 @@ void* allocate_page(void) {
     page->is_allocated = 1;
     page->next = NULL;
 
-    // page N's memory lives at physical address N * PAGE_SIZE
     void* page_mem = (void*)((uintptr_t)page->identifier * PAGE_SIZE);
-
-    // zero it out before handing it over (don't leak the previous owner's data)
     uint8_t* bytes = (uint8_t*)page_mem;
     for (uint32_t i = 0; i < PAGE_SIZE; i++) {
         bytes[i] = 0;
@@ -90,4 +96,12 @@ void free_page(void* ptr) {
     page->is_allocated = 0;
     page->next = free_list_head;
     free_list_head = page;
+}
+
+void* heap_region_start(void) {
+    return (void*)heap_start_addr;
+}
+
+size_t heap_region_size(void) {
+    return HEAP_SIZE;
 }

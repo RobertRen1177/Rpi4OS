@@ -6,8 +6,8 @@
 
 // constants initalization
 #define PAGE_SIZE 4096
-#define MEMORY_SIZE 128 * 1024 * 1024   // total RAM in bytes; must be a multiple of PAGE_SIZE
-
+#define MEMORY_SIZE (128 * 1024 * 1024)   // total RAM in bytes; must be a multiple of PAGE_SIZE
+#define HEAP_SIZE   (2 * 1024 * 1024)     // 2 MB reserved contiguously for the kernel heap
 // create the meta data struct for pages
 struct page {
     uint8_t  is_allocated;
@@ -24,5 +24,9 @@ void* allocate_page(void);
 
 // return a page (by the address allocate_page gave you) to the free list
 void free_page(void* ptr);
+
+// start address / size of the contiguous region reserved for the kernel heap
+void*  heap_region_start(void);
+size_t heap_region_size(void);
 
 #endif // MEMORY_PAGE_H

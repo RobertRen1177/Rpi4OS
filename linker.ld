@@ -11,6 +11,8 @@ SECTIONS{
         *(COMMON)
         __bss_end = .; /*the end of the __bss_section is the current address in memory we currently are*/
     } 
+    . = ALIGN(16); /* keep _end 16-byte aligned: the page metadata array starts here and
+                      is accessed with the MMU off, where unaligned accesses fault */
     _end = .;
 
    /DISCARD/ : { *(.comment) *(.gnu*) *(.note*) *(.eh_frame*) }
