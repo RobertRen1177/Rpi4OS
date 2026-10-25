@@ -1,3 +1,5 @@
+#pragma once
+
 enum {
     PERIPHERAL_BASE = 0xFE000000,
     GPFSEL0         = PERIPHERAL_BASE + 0x200000,
@@ -7,7 +9,7 @@ enum {
 };
 
 enum {
-    GPIO_MAX_PIN       = 58,
+    GPIO_MAX_PIN       = 58, // BCM2711 has 58 GPIO pins, numbered 0-57
     GPIO_FUNCTION_ALT5 = 2,
 };
 
@@ -15,7 +17,9 @@ enum {
     Pull_None = 0,
 };
 
-void mmio_write(unsigned int reg, unsigned int val);
-unsigned int mmio_read(unsigned int reg);
+// addresses are unsigned long because pointers are 64 bits on the rpi4
+void mmio_write(unsigned long reg, unsigned int val);
+unsigned int mmio_read(unsigned long reg);
 void uart_init();
-void uart_write_buffer();
+void writeByte(char ch);
+void writeString(const char* buffer);

@@ -1,4 +1,4 @@
-#include "include/mb.h"
+#include "IO/include/mb.h"
 enum {
     VIDEOCORE_MBOX = (PERIPHERAL_BASE + 0x0000B880),
     MBOX_READ      = (VIDEOCORE_MBOX + 0x0),
@@ -15,12 +15,12 @@ enum {
 volatile unsigned int __attribute__((aligned(16))) mbox[36];
 
 unsigned int parse_message_data(unsigned int message) {
-    unsigned int mask = 0xFFFFFF00;
+    unsigned int mask = 0xFFFFFFF0; // top 28 bits are the data
     return message & mask; 
 }
 
 unsigned int parse_message_status(unsigned int message) {
-    unsigned int mask = 0x000000FF;
+    unsigned int mask = 0x0000000F; // low 4 bits are the channel
     return message & mask; 
 }
 

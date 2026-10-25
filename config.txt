@@ -1,0 +1,8 @@
+# Copy this onto the SD card's boot partition next to kernel8.img and the
+# Raspberry Pi firmware files (start4.elf, fixup4.dat, bcm2711-rpi-4-b.dtb).
+arm_64bit=1
+kernel=kernel8.img
+
+# The mini UART's baud rate is derived from the core clock, and io.c assumes
+# 500 MHz (AUX_UART_CLOCK). Pin it there so the clock can't scale under us.
+core_freq_min=500

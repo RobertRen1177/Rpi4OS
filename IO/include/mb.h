@@ -1,3 +1,5 @@
+#pragma once
+
 // the mailbox is how the raspberry pi CPU and GPU communicate with each other
 // a mailbox message request is 4 bytes
 
@@ -6,7 +8,7 @@
 // into the memory perpherial of the GPU (which is pre definied in firmware)
 // the GPU will then read this from its own inbox, and then it will go to the place in memory
 
-#include "io.h"
+#include "IO/include/io.h"
 extern volatile unsigned int mbox[36];
 
 enum {

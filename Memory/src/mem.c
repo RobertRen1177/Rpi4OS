@@ -1,11 +1,16 @@
-#include "include/mem.h"
+#include "Memory/include/mem.h"
+
+// start of the free list
+static header_t* free_list_head = NULL; 
+static header_t* free_list_tail = NULL; 
 
 int init_heap() {
     // getter function getting us the start of the heap 
     header_t* start_of_heap = (header_t*) heap_region_start();
     
     //create header and footer of this guy
-    set_size(start_of_heap, HEAP_SIZE - ALIGNMENT, 0, 0); // you will need ALIGNMENT sized header so the effective size is HEAP_SIZE- ALIGNMENT
+    set_size(start_of_heap, HEAP_SIZE - ALIGNMENT, 0, 1); // you will need ALIGNMENT sized header so the effective size is HEAP_SIZE- ALIGNMENT
+    // prev_inuse = 1: nothing comes before the first chunk, so kfree must never try to coalesce backwards from it
     footer_of(start_of_heap)->size = chunk_size(start_of_heap);
 
     // a protective fence at the end of the heap so we cannot reclaim memory further than we are allowed

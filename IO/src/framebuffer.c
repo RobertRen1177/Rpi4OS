@@ -11,6 +11,9 @@
 
 */
 
+// filled in by init_mbox once the GPU hands us a framebuffer
+static unsigned int width, height, pitch, isrgb;
+static unsigned char *fb;
 
 void init_mbox() {
     mbox[0] = 35*4; // Length of message in bytes
@@ -62,12 +65,52 @@ void init_mbox() {
     // we now need to package this request and send it 
     
     // Check call is successful and we have a pointer with depth 32
-    if (mbox_call(MBOX_CH_PROP) && mbox[20] == 32 && mbox[28] != 0) {
+    if (write_to_mailbox(MBOX_CH_PROP) && mbox[20] == 32 && mbox[28] != 0) {
         mbox[28] &= 0x3FFFFFFF; // Convert GPU address to ARM address
-        width = mbox[10];       // Actual physical width
-        height = mbox[11];      // Actual physical height
+        width = mbox[10];       // Actual virtual width
+        height = mbox[11];      // Actual virtual height
         pitch = mbox[33];       // Number of bytes per line
         isrgb = mbox[24];       // Pixel order
         fb = (unsigned char *)((long)mbox[28]);
     }
+}
+
+void draw_pixel(struct point p, unsigned int color) {
+    if (fb == 0 || p.x < 0 || p.y < 0 || (unsigned int) p.x >= width || (unsigned int) p.y >= height) {
+        return;
+    }
+    unsigned long offset = (unsigned long) p.y * pitch + (unsigned long) p.x * 4;
+    *((volatile unsigned int *)(fb + offset)) = color;
+}
+
+void draw_line(struct point start, struct point end, unsigned int color) {
+    int dx = end.x > start.x ? end.x - start.x : start.x - end.x;
+    int dy = end.y > start.y ? start.y - end.y : end.y - start.y;
+    int sx = start.x < end.x ? 1 : -1;
+    int sy = start.y < end.y ? 1 : -1;
+    int err = dx + dy;
+
+    struct point p = start;
+    while (1) {
+        draw_pixel(p, color);
+        if (p.x == end.x && p.y == end.y) {
+            break;
+        }
+        int e2 = 2 * err;
+        if (e2 >= dy) {
+            err += dy;
+            p.x += sx;
+        }
+        if (e2 <= dx) {
+            err += dx;
+            p.y += sy;
+        }
+    }
+}
+
+void draw_square(struct point c1, struct point c2, struct point c3, struct point c4, unsigned int color) {
+    draw_line(c1, c2, color);
+    draw_line(c2, c3, color);
+    draw_line(c3, c4, color);
+    draw_line(c4, c1, color);
 }

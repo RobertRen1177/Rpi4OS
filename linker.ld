@@ -1,8 +1,8 @@
 SECTIONS{
-    . = 0x80000 /* the kernel loads code into this address */
-    .text : {KEEP(*(.text_boot)) *(.text .text.* .gnu.linkonce.t*)}
+    . = 0x80000; /* the kernel loads code into this address */
+    .text : {KEEP(*(.text.boot)) *(.text .text.* .gnu.linkonce.t*)}
     .rodata : {*(.rodata .rodata.* .gnu.linkonce.r*)}
-    PROVIDE(_data = .) /*if _data does not exist set the value equal to the current address*/
+    PROVIDE(_data = .); /*if _data does not exist set the value equal to the current address*/
     .data : { *(.data .data.* .gnu.linkonce.d*) }
     .bss (NOLOAD) : {
         . = ALIGN(16); /*forces . to be 16-byte aligned*/

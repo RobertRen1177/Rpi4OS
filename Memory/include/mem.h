@@ -2,11 +2,10 @@
 #define MEM_H
 #include <stddef.h>
 #include <stdint.h>
-#include "include/page.h"
+#include "Memory/include/page.h"
 
 #define ALIGNMENT 16
-#define RESEVERED HEAP 1024 * 1024 * 1
-#define CHUNK_MAGIC 0xCA40CA40CA40CA40LL
+#define CHUNK_MAGIC 0xCA40CA40CA40CA40ULL
 #define ALIGN_UP(size) (((size) + (ALIGNMENT - 1)) & ~(ALIGNMENT - 1)) // formula I got of the web
 
 /* --- Flag bits, packed into the low bits of size ---
@@ -17,10 +16,6 @@
 #define FLAG_ALLOCATED   (1UL << 0)
 #define FLAG_PREV_INUSE  (1UL << 1)
 #define SIZE_MASK        (~(uint64_t)(ALIGNMENT - 1))
-
-// start of the free list
-static header_t* free_list_head = NULL; 
-static header_t* free_list_tail = NULL; 
 
 /* Header
  * Present on EVERY chunk, allocated or free. It is exactly 16 bytes so that the
@@ -112,6 +107,7 @@ static inline void set_prev(header_t *h, header_t *p) {
 int remove_from_free_list(header_t* h);
 header_t* chunk_out_required_size(header_t* chunk, uint64_t size);
 int request_page();
+int init_heap();
 void* kmalloc(int size);
 int kfree(void* mem);
 #endif

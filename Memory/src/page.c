@@ -2,7 +2,7 @@
 
 // _end is planted by the linker just after the kernel image (.text/.rodata/.data/.bss).
 // We only ever use its address, so the declared type doesn't matter.
-extern uint8_t _end;
+extern uint8_t _end[];
 
 // base of the page metadata array (lives right after the kernel image)
 static struct page* all_pages_array;
@@ -19,14 +19,14 @@ void page_init(void) {
 
     // The metadata array starts right at _end (the linker script keeps _end 16-byte
     // aligned, so this address is safe to access with the MMU off).
-    all_pages_array = (struct page*)&_end;
+    all_pages_array = (struct page*)_end;
 
     // Pages consumed by firmware + kernel image + this metadata array. Round UP so the
     // page that holds the array's tail is reserved, not handed out.
     //   0x0     -> 0x80000 : firmware / boot region (and the stack grows down into here)
     //   0x80000 -> _end     : the kernel image
     //   _end    -> array_end: this metadata array itself
-    uintptr_t array_end   = (uintptr_t)&_end + (uintptr_t)numpages * sizeof(struct page);
+    uintptr_t array_end   = (uintptr_t)_end + (uintptr_t)numpages * sizeof(struct page);
     uint32_t  array_pages = (uint32_t)((array_end + PAGE_SIZE - 1) / PAGE_SIZE);
 
     // The heap is a fixed contiguous region immediately after the array.

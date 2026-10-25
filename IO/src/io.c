@@ -1,12 +1,12 @@
-#include "include/io.h"
+#include "IO/include/io.h"
 // the raspberry pi exposes its peripherals (so it's UART controllers and shit like that as memory addresses)
 // to write and read to UART, you need to know the memory address that is writing to the UART perpherial and the read memory
 // of the UART
-void mmio_write(unsigned int reg, unsigned int val) {
+void mmio_write(unsigned long reg, unsigned int val) {
     * (volatile unsigned int*) reg = val; // Volatile means the compiler cannot just assume the value of the variable
 }
-unsigned int mmio_read(unsigned int reg) {
-    int return_val = * ((volatile unsigned int *) reg);
+unsigned int mmio_read(unsigned long reg) {
+    unsigned int return_val = * ((volatile unsigned int *) reg);
     return return_val; 
 }
 
@@ -21,7 +21,7 @@ unsigned int gpio_call(unsigned int pin_number, unsigned int value, unsigned int
         the specific bits within that register that actually model what the bit does
     */
     unsigned int pins_per_register = 32 / field_size;
-    if (pin_number > field_max) {
+    if (pin_number >= field_max) {
         return 0; // this is an error
     }
     
@@ -31,7 +31,7 @@ unsigned int gpio_call(unsigned int pin_number, unsigned int value, unsigned int
     unsigned int mask = ((1 << field_size) - 1) << shift;
 
     // actually writing over
-    unsigned int reg = base + (pin_register * 4); // memory address of the 4 byte register
+    unsigned long reg = base + (pin_register * 4); // memory address of the 4 byte register
     unsigned int curval = mmio_read(reg); // read what is currently there
     curval &= ~(mask); // zero out the 3 bits that we want to write over
     curval |= ((value << shift) & mask); // writing the new values that we have
@@ -81,20 +81,21 @@ void uart_init() {
     mmio_write(AUX_MU_CNTL_REG, 3); //enable RX/TX
 }
 
+// bit 5 of LSR is set when the transmitter can accept a byte
 unsigned int uart_isWriteByteReady() { return mmio_read(AUX_MU_LSR_REG) & 0x20; }
 
 void writeByte(char ch) {
-    while (uart_isWriteByteReady()) {
+    while (!uart_isWriteByteReady()) {
         continue;
     }
     mmio_write(AUX_MU_IO_REG, ch);
     
 }
 
-void writeString(char* buffer) {
-    char* curr = buffer; 
-    while (*curr != '\n') {
-        writeByte(curr); 
+void writeString(const char* buffer) {
+    const char* curr = buffer; 
+    while (*curr != '\0') {
+        writeByte(*curr); 
         curr += 1; 
     }
 }

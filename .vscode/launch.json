@@ -1,0 +1,15 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug LeetCode",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/leetcode_debug",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "Build LeetCode (debug)",
+            "stopOnEntry": true
+        }
+    ]
+}
