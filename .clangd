@@ -1,0 +1,17 @@
+CompileFlags:
+  # Make clangd pretend to be the cross compiler; with --query-driver (see
+  # .vscode/settings.json) it pulls the target triple and freestanding headers
+  # (stdint.h, stddef.h) from aarch64-elf-gcc.
+  Compiler: /opt/homebrew/bin/aarch64-elf-gcc
+  # Mirror CFLAGS from the Makefile. The absolute -I keeps includes like
+  # "IO/include/io.h" resolving no matter which file is open.
+  Add:
+    - -ffreestanding
+    - -nostdlib
+    - -mgeneral-regs-only
+    - -Wall
+    - -Wextra
+    - -I/Users/robertren/Projects/Rpi4OS
+  # GCC-only flags clang would complain about
+  Remove:
+    - -nostartfiles
