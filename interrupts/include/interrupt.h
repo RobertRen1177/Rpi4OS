@@ -105,12 +105,12 @@ void irq_handler();
 int push_irq(unsigned int irq);
 int pop_irq();
 
-// timer and UART hard irqs and soft irqs
+// timer  hard irqs and soft irqs
 void timer_hardirq(unsigned int irq);
 void timer_handler(unsigned int irq);
+
+// Keyboard UART hardirq and handler
+// this is not put into the IRQ queue due to userspace needed to read
 void uart_hardirq();
 int uart_handler();
 int keyboard_read();
-
-
-
